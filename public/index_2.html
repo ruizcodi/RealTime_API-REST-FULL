@@ -1,0 +1,22 @@
+<html>
+    <head>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://127.0.0.1:3000/');
+
+            socket.on('notification', function (data) {
+                var n = data.mensaje + '<br>';
+                document.getElementById("notificationContainer").innerHTML += n;
+            });
+
+            var detenerNotificaciones = function(){
+                socket.emit('stopNotifications');
+            }
+        </script>
+    </head>
+    <body>
+        <h1>Test SocketIO</h1>
+        <button onclick="detenerNotificaciones()">Detener Notificaciones</button>
+        <div id="notificationContainer"></div>
+    </body>
+</html>
