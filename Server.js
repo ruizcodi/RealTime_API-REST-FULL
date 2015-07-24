@@ -7,7 +7,10 @@ var socket     = require("socket.io")
 
 var app        = express()
 var server     = http.createServer(app)
-var io         = socket(server).listen(server)
+var io         = socket(server)
+
+// var http = require('http').Server(app);
+// var io = require('socket.io')(http);
 
 // ***** Importando Modulos Externos */
 //var Query      = require("./SQL_Query")
@@ -33,12 +36,15 @@ connection.connect(
 )
 
 // ****** Configure Express Server. Static Files 
-app.use(express.static(__dirname + '/public'))
+app.use(express.static(__dirname + '/Frontend/'))
 
-app.get('/', function (req, res) {
-    console.log('Express: Conexión en "/" sirviendo archivo estático...')
-    res.sendfile(__dirname + '/public/index_1.html')
+// app.use('/', express.static('/Frontend_app/'));
+
+app.get('/api', function (req, res) {
+    console.log('Express: Conexión en "/api" sirviendo archivo estático...')
+    res.sendfile(__dirname +'/Frontend/index_1.html')
 })
+
 //  ****** Sirviendo archivo Json API 
 // app.get ('/load', Query.SQL_SELECT)
 // app.get ('/load/:id', Query.SQL_SELECT_ID)
@@ -46,22 +52,22 @@ app.get('/', function (req, res) {
 // app.put ('/load/:id', Query.SQL_UPDATE_ID)
 // app.delete ('/load/:id', Query.SQL_DELETE_ID)
 
-app.get    ('/load'    , SQL_SELECT    )
-app.get    ('/load/:id', SQL_SELECT_ID )
-app.post   ('/load'    , SQL_INSERT    )
-app.put    ('/load/:id', SQL_UPDATE_ID )
-app.delete ('/load/:id', SQL_DELETE_ID )
+app.get    ('/api3000'    , SQL_SELECT    )
+app.get    ('/api3000/:id', SQL_SELECT_ID )
+app.post   ('/api3000'    , SQL_INSERT    )
+app.put    ('/api3000/:id', SQL_UPDATE_ID )
+app.delete ('/api3000/:id', SQL_DELETE_ID )
+
 
 // /* Funciones para consulata a Base de datos MYSQL */ 
-
 function SQL_SELECT(req, res){
-    var query = connection.query("SELECT * FROM "+ _tableName + " LIMIT 0, 10000",
+    var query = connection.query("SELECT * FROM ?? LIMIT 0, 10000",[_tableName],
         function (err,rows){
             if(err){
                 console.log("ERR APP Problem with MySQL Query "+ err)
             } 
             else{
-                console.log("GET request : /load whit query " + "'" + query.sql + "'")
+                console.log("GET request : /api3000 whit query " + "'" + query.sql + "'")
                 res.end(JSON.stringify(rows))
             }
         }
@@ -69,13 +75,13 @@ function SQL_SELECT(req, res){
 }
 function SQL_SELECT_ID(req, res){
     var id = req.params.id
-    var query = connection.query("SELECT * FROM "+ _tableName + " WHERE id=?",id ,
+    var query = connection.query("SELECT * FROM ?? WHERE id=?",[_tableName, id],
         function (err,rows){
             if(err){
                 console.log("ERR APP Problem with MySQL Query " + err)
             }
             else{
-                console.log("GET request by id: /load/id whit query " + "'" + query.sql + "'")
+                console.log("GET request by id: /api3000/id whit query " + "'" + query.sql + "'")
                 console.log(JSON.stringify(rows))
                 res.end(JSON.stringify(rows[0]))
             }
@@ -90,13 +96,13 @@ function SQL_INSERT(req, res){
         Apellido : input.Apellido,
         Edad     : input.Edad      
     }
-    var query = connection.query("INSERT INTO "+ _tableName +" SET ?",data ,
+    var query = connection.query("INSERT INTO ?? SET ?",[_tableName, data],
         function(err,rows){
             if(err){
                 console.log("ERR APP Problem with MySQL Query "+ err)
             }
             else{
-                console.log("POST request : /load whit query " + "'" + query.sql + "'")
+                console.log("POST request : /api3000 whit query " + "'" + query.sql + "'")
                 res.end(JSON.stringify(rows))
             }
         }
@@ -111,14 +117,13 @@ function SQL_UPDATE_ID(req, res){
         Apellido : input.Apellido,
         Edad     : input.Edad      
     }
-
-    var query = connection.query("UPDATE "+_tableName+" SET ? WHERE id= ?",[data,id],
+    var query = connection.query("UPDATE ?? SET ? WHERE id= ?",[_tableName,data,id],
         function(err,rows){
             if(err){
                 console.log("Problem with MySQL Query "+ err)
             }
             else{
-                console.log("PUT request : /load/id whit query " + "'" + query.sql + "'")
+                console.log("PUT request : /api3000/id whit query " + "'" + query.sql + "'")
                 res.end(JSON.stringify(rows))
             }
         }
@@ -127,13 +132,13 @@ function SQL_UPDATE_ID(req, res){
 function SQL_DELETE_ID(req, res){
     var id = req.params.id
     console.log(id)
-    var query = connection.query("Delete FROM "+_tableName+" WHERE id=?",id,
+    var query = connection.query("Delete FROM ?? WHERE id=?",[_tableName,id],
         function (err,rows){
             if(err){
                 console.log("ERR APP Problem with MySQL Query "+ err)
             }
             else{
-                console.log("DELETE request by id: /load/id whit query " + "'" + query.sql + "'")
+                console.log("DELETE request by id: /api3000/id whit query " + "'" + query.sql + "'")
                 res.end(JSON.stringify(rows))
             }
         }
@@ -144,45 +149,37 @@ function MsjServer(){
     console.log("It's Started on PORT 3000")
 }
 
+
 // /*  Sockets events con socket.io */ 
-io.sockets.on('connection',
-    function (socket){
-        console.log('SocketIO: Usuario Conectado...')
+io.sockets.on('connection', function (socket){
 
-        var sendNotification = function (){
+    console.log('SocketIO: Usuario Conectado...')
+
+    var sendNotification = function (){
         var time = new Date()
-            // socket.emit('notification', SQL_SELECT)
-            socket.emit('notification', { mensaje: time + ': Nueva notificación enviada desde el servidor.'})  
-        }
-
-        var sendNotificationInterval = setInterval(sendNotification, 1000) 
-
-        socket.on('stopNotifications', 
-            function () {
-                console.log('SocketIO: Notificaciones detenidas por el usuario...')
-                clearInterval(sendNotificationInterval)
-            }
-        )
-
-        socket.on('disconnect', 
-            function () {
-                console.log('SocketIO: Usuario Desconetado...')
-                clearInterval(sendNotificationInterval)
-            }
-        )
+        socket.emit('notification', { mensaje: time + ': Nueva notificación enviada desde el servidor.'})  
     }
-)
+    var sendNotificationInterval = setInterval(sendNotification, 1000) 
+
+    socket.on('stopNotifications', function () {
+            console.log('SocketIO: Notificaciones detenidas por el usuario...')
+            clearInterval(sendNotificationInterval)
+    })
+
+    socket.on('emit:add', function(data) {
+        console.log(data)
+        socket.broadcast.emit('emit:add', data);
+    })
+
+    socket.on('disconnect', function () {
+            console.log('SocketIO: Usuario Desconetado...')
+            clearInterval(sendNotificationInterval)
+    })
+})
 
 server.listen(3000, MsjServer)
 
 
-/* Start the Express Web Server.
-//server.listen(3000, Query.MsjServer)
-
-app.listen(3000,function(){
-    console.log("It's Started on PORT 3000")
-})
-*/
 
 //  ********* Otra forma de pasar parametros a Query de SQL **************
 /*
@@ -192,7 +189,7 @@ var query = connection.query("SELECT * FROM "+ _tableName + " WHERE id='"+id+"' 
 
 // *******Busqueda por cualquier otro campo*************
 
-// app.get('/load/:Nombre',function (req,res){
+// app.get('/api3000/:Nombre',function (req,res){
 //     var id = req.params.Nombre
 //     console.log(id)
 //     //debugger

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html ng-app="API">
+	<head>
+		<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+		<!-- Optional theme -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css"> 
+		<title>Contact List App</title>
+	</head>
+	<body>
+		<div class="container" ng-controller="AppCtrl">
+
+			<!-- Prueba de Socket.IO -->
+				<div>
+					<h1>RT notifications</h1>
+			        <button ng-click="detenerNotificaciones()">Detener Notificaciones</button>
+			        <div id="notificationContainer"></div>	
+				</div>
+			<!-- Prueba de Socket.IO -->
+
+			<h1>Contact List App Hector Gibraham</h1>
+			<table class="table"> <!-- {{contactlist}} -->
+				<thead>
+					<tr>
+						<th>Name</th>					
+						<th>Email</th>
+						<th>Number</th>
+						<th>Action</th>
+						<th>&nbsp;</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td><input class="form-control" ng-model="contact.Nombre"></td>
+						<td><input class="form-control" ng-model="contact.Apellido"></td>
+						<td><input class="form-control" ng-model="contact.Edad"></td>
+						<td><button class="btn btn-primary" ng-click="addContact()">Add Contact</button></td>
+						<td><button class="btn btn-info" ng-click="update()">Update</button>&nbsp;&nbsp;
+							<button class="btn btn-info" ng-click="deselect()">Clear</button></td>
+					</tr>
+					<tr ng-repeat="contact in contactlist">
+						<td>{{contact.Nombre}}</td>
+						<td>{{contact.Apellido}}</td>
+						<td>{{contact.Edad}}</td>
+						<td><button class="btn btn-danger" ng-click="remove(contact.id)">Remove</button></td>
+						<td><button class="btn btn-warning" ng-click="edit(contact.id)">Edit</button></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>
+		<script>window.angular || document.write('<script src="public/api-rest_app/lib/angular.min.js"><\/script>');</script>
+		<script src="public/api-rest_app/lib/socket.io.js"></script>
+		<script src="public/api-rest_app/controllers/controller.js"></script>
+		<script src="public/api-rest_app/lib/angular-route.min.js"></script>
+	</body>
+</html>
